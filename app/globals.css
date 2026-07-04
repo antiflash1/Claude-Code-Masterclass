@@ -44,6 +44,11 @@ svg.logo {
   @apply text-center text-xl font-bold;
 }
 
+/* preview */
+.preview-grid {
+  @apply grid grid-cols-1 gap-6 mt-6 md:grid-cols-2;
+}
+
 /* buttons */
 .btn {
   @apply inline-block rounded-lg px-4 py-2 font-semibold text-heading bg-primary transition-colors;
