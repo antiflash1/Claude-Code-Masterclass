@@ -51,8 +51,8 @@ svg.logo {
 
 /* buttons */
 .btn {
-  @apply inline-block rounded-lg px-4 py-2 font-semibold text-heading bg-primary transition-colors;
+  @apply inline-flex items-center gap-2 rounded-[10px] bg-linear-to-r from-[#9810fa] to-[#e60076] px-4 py-2.5 font-normal text-white transition-opacity;
 }
 .btn:hover {
-  @apply bg-secondary;
+  @apply opacity-90;
 }
