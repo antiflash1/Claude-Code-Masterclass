@@ -9,9 +9,10 @@ export default function Home() {
     <div className="center-content">
       <div className="page-content">
         <h1>
-          P<Clock8 className="logo" strokeWidth={2.75} />cket Heist
+          P<Clock8 className="logo" strokeWidth={2.75} />
+          cket Heist
         </h1>
-        <div>Tiny missions. Big office mischief.</div>
+        <div>Tiny heists. Big trouble.</div>
         <p>
           Welcome to Pocket Heist, where the breakroom is your vault and the
           stapler is fair game. Rally your crew, plan the perfect caper, and
