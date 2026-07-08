@@ -49,3 +49,8 @@ Next.js 16 **App Router** with React 19, TypeScript (strict), and Tailwind CSS 4
 - Use `git switch -c` to create/switch branches, not `git checkout`.
 - Tests use Vitest with `globals: true` and jsdom; Testing Library matchers come from `@testing-library/jest-dom/vitest` loaded in `vitest.setup.ts`. Prefer role-based queries (`getByRole`) as in `tests/components/Navbar.test.tsx`.
 - Commit messages follow `<emoji> <type>: <description>` (e.g. `✨ feat:`, `🐛 fix:`, `🔨 refactor:`, `📝 docs:`, `🎨 style:`, `✅ test:`, `⚡ perf:`) and explain *why*, not just *what* — see `.claude/commands/commit-message.md`.
+
+## Checking Documentation
+
+**important:** When implementing any lib/framework-specific features, ALWAYS check the appropiate lib/framework documentation using the Context7 MCP server before writing code.
+
