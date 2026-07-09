@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import "@/app/globals.css"
+import { UserProvider } from "@/lib/user-context"
 
 export const metadata: Metadata = {
   title: "Pocket Heist",
@@ -14,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {children}
+        <UserProvider>{children}</UserProvider>
       </body>
     </html>
   )
