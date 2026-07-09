@@ -2,7 +2,12 @@
 
 import { useId, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Eye, EyeOff } from "lucide-react"
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { doc, setDoc } from "firebase/firestore"
+import { auth, db } from "@/lib/firebase"
+import { generateCodename } from "@/lib/codenames"
 import styles from "./AuthForm.module.css"
 
 export type AuthFormMode = "login" | "signup"
@@ -37,20 +42,64 @@ const COPY: Record<
   },
 }
 
+function getSignupErrorMessage(error: unknown): string {
+  if (
+    error &&
+    typeof error === "object" &&
+    "code" in error &&
+    typeof error.code === "string"
+  ) {
+    switch (error.code) {
+      case "auth/email-already-in-use":
+        return "An account with this email already exists."
+      case "auth/weak-password":
+        return "Password is too weak. Please choose a stronger password."
+      case "auth/invalid-email":
+        return "Please enter a valid email address."
+      case "auth/network-request-failed":
+        return "Network error. Please check your connection and try again."
+    }
+  }
+
+  return "Something went wrong. Please try again."
+}
+
 export default function AuthForm({ mode }: AuthFormProps) {
   const [showPassword, setShowPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const emailId = useId()
   const passwordId = useId()
+  const router = useRouter()
   const copy = COPY[mode]
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    console.log({
-      mode,
-      email: formData.get("email"),
-      password: formData.get("password"),
-    })
+    const email = formData.get("email") as string
+    const password = formData.get("password") as string
+
+    if (mode === "login") {
+      console.log({ mode, email, password })
+      return
+    }
+
+    setErrorMessage(null)
+    setIsSubmitting(true)
+    try {
+      const { user } = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      )
+      const codename = generateCodename()
+      await updateProfile(user, { displayName: codename })
+      await setDoc(doc(db, "users", user.uid), { codename })
+      router.push("/heists")
+    } catch (error) {
+      setErrorMessage(getSignupErrorMessage(error))
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -96,9 +145,14 @@ export default function AuthForm({ mode }: AuthFormProps) {
             </button>
           </div>
         </div>
-        <button type="submit" className={styles.submit}>
+        <button type="submit" disabled={isSubmitting} className={styles.submit}>
           {copy.submitLabel}
         </button>
+        {errorMessage && (
+          <p className={styles.error} role="alert">
+            {errorMessage}
+          </p>
+        )}
       </form>
       <p className={styles.switch}>
         {copy.switchPrompt}{" "}

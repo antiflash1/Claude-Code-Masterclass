@@ -48,6 +48,10 @@
   @apply bg-secondary;
 }
 
+.error {
+  @apply mt-2 text-center text-sm text-error;
+}
+
 .switch {
   @apply mt-4 text-center text-sm;
 }
