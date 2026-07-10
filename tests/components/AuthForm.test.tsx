@@ -1,7 +1,11 @@
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth"
 import { doc, setDoc } from "firebase/firestore"
 
 // component imports
@@ -17,6 +21,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("firebase/auth", () => ({
   createUserWithEmailAndPassword: vi.fn(),
+  signInWithEmailAndPassword: vi.fn(),
   updateProfile: vi.fn(),
 }))
 
@@ -35,6 +40,7 @@ vi.mock("@/lib/codenames", () => ({
 }))
 
 const mockedCreateUser = vi.mocked(createUserWithEmailAndPassword)
+const mockedSignIn = vi.mocked(signInWithEmailAndPassword)
 const mockedUpdateProfile = vi.mocked(updateProfile)
 const mockedDoc = vi.mocked(doc)
 const mockedSetDoc = vi.mocked(setDoc)
@@ -50,6 +56,7 @@ describe("AuthForm", () => {
   beforeEach(() => {
     routerPushMock.mockReset()
     mockedCreateUser.mockReset()
+    mockedSignIn.mockReset()
     mockedUpdateProfile.mockReset().mockResolvedValue(undefined)
     mockedDoc.mockReset().mockReturnValue({} as ReturnType<typeof doc>)
     mockedSetDoc.mockReset().mockResolvedValue(undefined)
@@ -90,41 +97,69 @@ describe("AuthForm", () => {
     ).toHaveAttribute("aria-pressed", "true")
   })
 
-  it("logs mode, email, and password on submit in login mode without a real form submission", async () => {
+  it("signs the user in and shows a success message on successful login, without redirecting", async () => {
+    mockedSignIn.mockResolvedValue(
+      {} as Awaited<ReturnType<typeof signInWithEmailAndPassword>>,
+    )
+
     const user = userEvent.setup()
-    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {})
     render(<AuthForm mode="login" />)
 
     await user.type(screen.getByLabelText(/email/i), "a@b.com")
     await user.type(screen.getByLabelText("Password"), "secret123")
-    await user.click(screen.getByRole("button", { name: /log in/i }))
+    const submitButton = screen.getByRole("button", { name: /log in/i })
+    await user.click(submitButton)
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        mode: "login",
-        email: "a@b.com",
-        password: "secret123",
+    expect(mockedSignIn).toHaveBeenCalledWith(auth, "a@b.com", "secret123")
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Welcome back! You're logged in.",
+    )
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+    expect(submitButton).not.toBeDisabled()
+    expect(routerPushMock).not.toHaveBeenCalled()
+  })
+
+  it("shows an inline error and no success message when login fails with invalid credentials", async () => {
+    mockedSignIn.mockRejectedValue({ code: "auth/invalid-credential" })
+
+    const user = userEvent.setup()
+    render(<AuthForm mode="login" />)
+
+    await user.type(screen.getByLabelText(/email/i), "a@b.com")
+    await user.type(screen.getByLabelText("Password"), "secret123")
+    const submitButton = screen.getByRole("button", { name: /log in/i })
+    await user.click(submitButton)
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Incorrect email or password. Please try again.",
+    )
+    expect(screen.queryByRole("status")).not.toBeInTheDocument()
+    expect(submitButton).not.toBeDisabled()
+  })
+
+  it("disables the submit button while the login request is pending", async () => {
+    let resolveSignIn: (
+      value: Awaited<ReturnType<typeof signInWithEmailAndPassword>>,
+    ) => void = () => {}
+    mockedSignIn.mockReturnValue(
+      new Promise((resolve) => {
+        resolveSignIn = resolve
       }),
     )
 
-    consoleSpy.mockRestore()
-  })
-
-  it("does not call any Firebase or router APIs when submitting in login mode", async () => {
     const user = userEvent.setup()
-    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {})
     render(<AuthForm mode="login" />)
 
     await user.type(screen.getByLabelText(/email/i), "a@b.com")
     await user.type(screen.getByLabelText("Password"), "secret123")
-    await user.click(screen.getByRole("button", { name: /log in/i }))
+    const submitButton = screen.getByRole("button", { name: /log in/i })
+    await user.click(submitButton)
 
-    expect(mockedCreateUser).not.toHaveBeenCalled()
-    expect(mockedUpdateProfile).not.toHaveBeenCalled()
-    expect(mockedSetDoc).not.toHaveBeenCalled()
-    expect(routerPushMock).not.toHaveBeenCalled()
+    expect(submitButton).toBeDisabled()
 
-    consoleSpy.mockRestore()
+    resolveSignIn({} as Awaited<ReturnType<typeof signInWithEmailAndPassword>>)
+
+    await waitFor(() => expect(submitButton).not.toBeDisabled())
   })
 
   it("renders a switch link to /signup in login mode", () => {

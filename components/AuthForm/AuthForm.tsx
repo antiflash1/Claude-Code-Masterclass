@@ -4,7 +4,11 @@ import { useId, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff } from "lucide-react"
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth"
 import { doc, setDoc } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import { generateCodename } from "@/lib/codenames"
@@ -42,7 +46,7 @@ const COPY: Record<
   },
 }
 
-function getSignupErrorMessage(error: unknown): string {
+function getAuthErrorMessage(error: unknown): string {
   if (
     error &&
     typeof error === "object" &&
@@ -58,6 +62,12 @@ function getSignupErrorMessage(error: unknown): string {
         return "Please enter a valid email address."
       case "auth/network-request-failed":
         return "Network error. Please check your connection and try again."
+      case "auth/invalid-credential":
+      case "auth/user-not-found":
+      case "auth/wrong-password":
+        return "Incorrect email or password. Please try again."
+      case "auth/too-many-requests":
+        return "Too many attempts. Please wait a moment and try again."
     }
   }
 
@@ -68,6 +78,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const emailId = useId()
   const passwordId = useId()
   const router = useRouter()
@@ -80,7 +91,17 @@ export default function AuthForm({ mode }: AuthFormProps) {
     const password = formData.get("password") as string
 
     if (mode === "login") {
-      console.log({ mode, email, password })
+      setErrorMessage(null)
+      setSuccessMessage(null)
+      setIsSubmitting(true)
+      try {
+        await signInWithEmailAndPassword(auth, email, password)
+        setSuccessMessage("Welcome back! You're logged in.")
+      } catch (error) {
+        setErrorMessage(getAuthErrorMessage(error))
+      } finally {
+        setIsSubmitting(false)
+      }
       return
     }
 
@@ -97,7 +118,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
       await setDoc(doc(db, "users", user.uid), { codename })
       router.push("/heists")
     } catch (error) {
-      setErrorMessage(getSignupErrorMessage(error))
+      setErrorMessage(getAuthErrorMessage(error))
       setIsSubmitting(false)
     }
   }
@@ -151,6 +172,11 @@ export default function AuthForm({ mode }: AuthFormProps) {
         {errorMessage && (
           <p className={styles.error} role="alert">
             {errorMessage}
+          </p>
+        )}
+        {successMessage && (
+          <p className={styles.success} role="status">
+            {successMessage}
           </p>
         )}
       </form>
