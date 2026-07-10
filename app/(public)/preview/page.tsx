@@ -3,6 +3,7 @@
 import Avatar from "@/components/Avatar"
 import Skeleton from "@/components/Skeleton"
 import AuthForm from "@/components/AuthForm"
+import Loader from "@/components/Loader"
 
 export default function PreviewPage() {
   return (
@@ -27,6 +28,11 @@ export default function PreviewPage() {
       <div className="preview-grid">
         <AuthForm mode="login" />
         <AuthForm mode="signup" />
+      </div>
+
+      <h3>Loader</h3>
+      <div className="preview-grid">
+        <Loader />
       </div>
     </div>
   )
