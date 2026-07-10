@@ -1,0 +1,5 @@
+@reference "../../app/globals.css";
+
+.toast {
+  @apply fixed bottom-4 right-4 rounded-lg bg-error px-4 py-3 text-sm text-white shadow-lg;
+}
