@@ -1,0 +1,53 @@
+@reference "../globals.css";
+
+.hero {
+  @apply relative flex flex-col items-start gap-1;
+}
+
+.wordmark {
+  @apply mt-3 font-extrabold tracking-tight;
+}
+
+.tagline {
+  @apply mt-2 font-mono text-xs tracking-[0.3em] text-primary uppercase;
+}
+
+.stamp {
+  @apply mt-6 inline-flex -rotate-2 items-center gap-2 self-start rounded border border-dashed border-secondary/50 bg-secondary/10 px-3 py-1 font-mono text-[11px] tracking-[0.2em] text-secondary uppercase md:absolute md:top-0 md:right-0 md:mt-0;
+}
+
+.stampDot {
+  @apply size-1.5 rounded-full bg-success;
+}
+
+.copy {
+  @apply mt-8 flex max-w-2xl flex-col gap-4 text-left;
+}
+
+.steps {
+  @apply mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3;
+}
+
+.step {
+  @apply flex flex-col gap-2 rounded-lg border border-lighter bg-light px-4 py-4 text-left;
+}
+
+.stepHead {
+  @apply flex items-center gap-2 font-mono text-xs tracking-widest text-primary;
+}
+
+.stepTitle {
+  @apply font-semibold text-heading;
+}
+
+.stepText {
+  @apply text-sm text-body;
+}
+
+.ctaRow {
+  @apply mt-10 flex flex-wrap items-center gap-4;
+}
+
+.secondary {
+  @apply text-sm text-body underline-offset-4 hover:text-heading hover:underline;
+}
