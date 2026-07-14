@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**Pocket Heist** — a Next.js app for creating and managing playful office "heists" (tiny missions). Starter project for the Claude Code Masterclass. Auth and the Firestore data layer are wired up; the heist creation flow writes real documents, but the heists list and detail pages are still heading-only stubs.
+**Pocket Heist** — a Next.js app for creating and managing playful office "heists" (tiny missions). Starter project for the Claude Code Masterclass; most pages are UI stubs without a data layer yet.
 
 ## Commands
 
@@ -30,12 +30,8 @@ Next.js 16 **App Router** with React 19, TypeScript (strict), and Tailwind CSS 4
 
 - **Route groups drive layout, not URLs.** `app/(public)/` and `app/(dashboard)/` each own a `layout.tsx` but contribute nothing to the path. `(public)` wraps pages in `<main class="public">` for unauthenticated views (splash, login, signup, preview); `(dashboard)` renders the `Navbar` + `<main>` shell for the authenticated heists area. `app/layout.tsx` is the root `<html>`/`<body>` shell and holds site `metadata`.
 - **Auth-based routing is enforced at the layout level.** `app/(public)/layout.tsx` and `app/(dashboard)/layout.tsx` are client components that read `useUser()` (`lib/user-context.tsx`) and use `lib/useAuthRedirect.ts` to redirect: `(public)` sends signed-in users to `/heists`, `(dashboard)` sends signed-out users to `/login`. Both render the shared `Loader` component while auth state is still resolving. `/login` and `/signup` render the shared `AuthForm` component (`mode="login"` / `mode="signup"`), wired to Firebase Auth.
-- **Firebase** is initialized once in `lib/firebase.ts` (exports `firebaseApp`, `auth`, `db`) from `NEXT_PUBLIC_FIREBASE_*` env vars in `.env.local`. Firestore security rules (`firestore.rules`) are still the wide-open default (`allow read, write: if request.time < timestamp.date(2026, 8, 7)`) — write real rules before that date.
-- **Firestore types** live in `types/firestore/` (one file per entity: `heist.ts`, `user.ts`, barrel `index.ts` with a `COLLECTIONS` map). Each entity follows the `Document` / `Create{Entity}Input` / `Update{Entity}Input` / `{entity}Converter` pattern — see the `firestore-schemas` skill for the convention and `heistConverter` for a worked example.
-- **Heists feature** lives under `app/(dashboard)/heists/`: `create/` is functional — `components/HeistForm` loads assignable users from Firestore, generates the current user's codename, and `addDoc`s a `CreateHeistInput` into the `heists` collection before redirecting to `/heists`. The list (`page.tsx`) and dynamic detail (`[id]/`) pages are still heading-only stubs with no data fetching.
-- **`lib/codenames.ts`** generates random spy-style codenames (adjective + heist noun + animal), used to give users a display alias distinct from their real name.
-- **Components** are folder-based: a directory under `components/` with the component `.tsx`, a co-located `*.module.css` (CSS Modules for scoped styles), and a barrel `index.ts` re-export. Import via the barrel (e.g. `@/components/Navbar`). Current components: `Navbar`, `AuthForm`, `HeistForm`, `Avatar`, `Loader`, `Skeleton`, `Toast`.
-- **Icons** come from `lucide-react` (e.g. the splash page in `app/(public)/page.tsx`).
+- **Heists feature** lives under `app/(dashboard)/heists/`: list (`page.tsx`), `create/`, and dynamic detail `[id]/`. These are currently heading-only stubs.
+- **Components** are folder-based: a directory under `components/` with the component `.tsx`, a co-located `*.module.css` (CSS Modules for scoped styles), and a barrel `index.ts` re-export. Import via the barrel (e.g. `@/components/Navbar`).
 - **Styling** is split: global styles + custom utility classes (`.page-content`, `.center-content`, `.form-title`, `.btn`, etc., built with `@apply`) live in `app/globals.css`, alongside Tailwind 4 (configured through `@tailwindcss/postcss`, no `tailwind.config`). Component-specific styles go in the component's CSS Module.
 
 ## Slash commands
@@ -51,10 +47,10 @@ Next.js 16 **App Router** with React 19, TypeScript (strict), and Tailwind CSS 4
 - Do NOT apply more than one Tailwind utility class directly in a component template — if an element needs more, combine them into a custom class in `globals.css` using `@apply`.
 - Use minimal project dependencies where possible.
 - Use `git switch -c` to create/switch branches, not `git checkout`.
-- New Firestore document types follow the `Document` / `Create{Entity}Input` / `Update{Entity}Input` / `{entity}Converter` pattern in `types/firestore/` — see the `firestore-schemas` skill before adding or changing one.
 - Tests use Vitest with `globals: true` and jsdom; Testing Library matchers come from `@testing-library/jest-dom/vitest` loaded in `vitest.setup.ts`. Prefer role-based queries (`getByRole`) as in `tests/components/Navbar.test.tsx`.
 - Commit messages follow `<emoji> <type>: <description>` (e.g. `✨ feat:`, `🐛 fix:`, `🔨 refactor:`, `📝 docs:`, `🎨 style:`, `✅ test:`, `⚡ perf:`) and explain *why*, not just *what* — see `.claude/commands/commit-message.md`.
 
 ## Checking Documentation
 
-**important:** When implementing any lib/framework-specific features, ALWAYS check the appropriate lib/framework documentation using the Context7 MCP server before writing code.
+**important:** When implementing any lib/framework-specific features, ALWAYS check the appropiate lib/framework documentation using the Context7 MCP server before writing code.
+
