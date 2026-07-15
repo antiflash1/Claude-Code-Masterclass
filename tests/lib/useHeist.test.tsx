@@ -51,13 +51,16 @@ function fakeHeistsSnapshot(
 }
 
 function Probe({ mode }: { mode: HeistMode }) {
-  const heists = useHeist(mode)
+  const { heists, loading } = useHeist(mode)
   return (
-    <ul data-testid="heists">
-      {heists.map((h) => (
-        <li key={h.id}>{h.title}</li>
-      ))}
-    </ul>
+    <>
+      <ul data-testid="heists">
+        {heists.map((h) => (
+          <li key={h.id}>{h.title}</li>
+        ))}
+      </ul>
+      <div data-testid="loading">{String(loading)}</div>
+    </>
   )
 }
 
@@ -144,5 +147,48 @@ describe("useHeist", () => {
     })
     expect(screen.queryByText("Steal the stapler")).not.toBeInTheDocument()
     expect(screen.getByText("Swap the mugs")).toBeInTheDocument()
+  })
+
+  it("starts loading true and flips to false after the first snapshot", () => {
+    let deliver: (snapshot: unknown) => void = () => {}
+    mockedOnSnapshot.mockImplementation((_q, onNext) => {
+      deliver = onNext as (snapshot: unknown) => void
+      return unsubscribeMock
+    })
+
+    render(<Probe mode="active" />)
+
+    expect(screen.getByTestId("loading")).toHaveTextContent("true")
+
+    act(() => {
+      deliver(fakeHeistsSnapshot([]))
+    })
+
+    expect(screen.getByTestId("loading")).toHaveTextContent("false")
+  })
+
+  it("flips loading to false when the snapshot listener errors", () => {
+    let deliverError: (error: unknown) => void = () => {}
+    mockedOnSnapshot.mockImplementation((_q, _onNext, onError) => {
+      deliverError = onError as (error: unknown) => void
+      return unsubscribeMock
+    })
+
+    render(<Probe mode="active" />)
+
+    expect(screen.getByTestId("loading")).toHaveTextContent("true")
+
+    act(() => {
+      deliverError(new Error("boom"))
+    })
+
+    expect(screen.getByTestId("loading")).toHaveTextContent("false")
+  })
+
+  it("stays loading true while canQuery is false", () => {
+    mockedUseUser.mockReturnValue(undefined)
+    render(<Probe mode="active" />)
+
+    expect(screen.getByTestId("loading")).toHaveTextContent("true")
   })
 })

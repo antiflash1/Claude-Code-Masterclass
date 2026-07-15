@@ -1,0 +1,41 @@
+@reference "../../app/globals.css";
+
+.card {
+  @apply flex flex-col gap-3 rounded-[10px] border border-[#1e2939] bg-lighter p-[21px];
+}
+
+.titleRow {
+  @apply flex items-start justify-between gap-2;
+}
+
+.title {
+  @apply text-base leading-6 tracking-[-0.3125px] text-heading break-words;
+}
+
+.clockIcon {
+  @apply shrink-0 text-body;
+}
+
+.meta {
+  @apply flex flex-col gap-2;
+}
+
+.metaRow {
+  @apply flex items-start gap-2 text-sm leading-5 tracking-[-0.15px] text-body break-words;
+}
+
+.metaRow svg {
+  @apply mt-0.5 shrink-0;
+}
+
+.to {
+  @apply text-primary;
+}
+
+.by {
+  @apply text-secondary;
+}
+
+.timeRemaining {
+  @apply text-primary;
+}

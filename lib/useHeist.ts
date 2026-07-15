@@ -6,11 +6,25 @@ import { COLLECTIONS, heistConverter, type Heist } from "@/types/firestore"
 
 export type HeistMode = "active" | "assigned" | "expired"
 
-export function useHeist(mode: HeistMode): Heist[] {
+export interface UseHeistResult {
+  heists: Heist[]
+  loading: boolean
+}
+
+export function useHeist(mode: HeistMode): UseHeistResult {
   const currentUser = useUser()
   const uid = currentUser?.uid
   const canQuery = mode === "expired" || Boolean(uid)
   const [heists, setHeists] = useState<Heist[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Reset loading when a new subscription is about to start (mode/uid change).
+  // Done during render, not inside the effect, to avoid a cascading setState-in-effect.
+  const [subscriptionKey, setSubscriptionKey] = useState({ mode, uid })
+  if (subscriptionKey.mode !== mode || subscriptionKey.uid !== uid) {
+    setSubscriptionKey({ mode, uid })
+    setLoading(true)
+  }
 
   useEffect(() => {
     if (!canQuery) {
@@ -43,14 +57,16 @@ export function useHeist(mode: HeistMode): Heist[] {
       q,
       (snapshot) => {
         setHeists(snapshot.docs.map((doc) => heistConverter.fromFirestore(doc)))
+        setLoading(false)
       },
       (error) => {
         console.error(error)
+        setLoading(false)
       },
     )
 
     return unsubscribe
   }, [mode, uid, canQuery])
 
-  return canQuery ? heists : []
+  return { heists: canQuery ? heists : [], loading }
 }
