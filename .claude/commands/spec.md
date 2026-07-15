@@ -59,9 +59,11 @@ If you cannot infer a sensible `feature_title` and `feature_slug`, ask the user 
 
 ## Step 2.5 Pull Figma context when needed
 
-If `figma_hint` is present and Figma MCP tools are available:
+If `figma_hint` is present and figma-mcp-free (Figma MCP) tools are available:
 
-1. Use the Figma MCP tools to locate the component, layer or frame.  
+Use the figma-design-extractor subagent to provide a design guide for the feature, citing the `figma_hint` and tell it to:
+
+1. Use the figma-mcp-free MCP tools to locate the component, layer or frame.  
 2. Extract only information that is useful for implementation, such as:  
    - Dimensions and layout (grid, spacing, alignment)  
    - Key typography tokens (font family, size, weight)  
